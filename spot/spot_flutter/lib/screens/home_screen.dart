@@ -8,6 +8,7 @@ import '../util/format.dart';
 import '../util/location.dart';
 import '../widgets/category.dart';
 import '../widgets/event_card.dart';
+import '../widgets/events_map.dart';
 import '../widgets/states.dart';
 import 'event_detail_screen.dart';
 
@@ -27,6 +28,7 @@ class HomeScreenState extends State<HomeScreen> {
   List<EventView>? _events;
   String? _error;
   bool _loading = false;
+  bool _showMap = false;
 
   @override
   void initState() {
@@ -101,7 +103,34 @@ class HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Nearby', style: text.headlineMedium),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text('Nearby', style: text.headlineMedium),
+                      ),
+                      SegmentedButton<bool>(
+                        showSelectedIcon: false,
+                        style: const ButtonStyle(
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        segments: const [
+                          ButtonSegment(
+                            value: false,
+                            icon: Icon(Icons.view_agenda_outlined),
+                            tooltip: 'List',
+                          ),
+                          ButtonSegment(
+                            value: true,
+                            icon: Icon(Icons.map_outlined),
+                            tooltip: 'Map',
+                          ),
+                        ],
+                        selected: {_showMap},
+                        onSelectionChanged: (s) =>
+                            setState(() => _showMap = s.first),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: Gap.xs),
                   Text(
                     "Find what's happening around you, in person.",
@@ -121,10 +150,17 @@ class HomeScreenState extends State<HomeScreen> {
             CategoryFilterBar(selected: _category, onChanged: _selectCategory),
             const SizedBox(height: Gap.xs),
             Expanded(
-              child: RefreshIndicator(
-                onRefresh: () => _load(resolveLocation: true),
-                child: _buildBody(),
-              ),
+              child: _showMap && _events != null && _location != null
+                  ? EventsMap(
+                      events: _events!,
+                      centerLat: _location!.lat,
+                      centerLng: _location!.lng,
+                      onOpen: _open,
+                    )
+                  : RefreshIndicator(
+                      onRefresh: () => _load(resolveLocation: true),
+                      child: _buildBody(),
+                    ),
             ),
           ],
         ),
