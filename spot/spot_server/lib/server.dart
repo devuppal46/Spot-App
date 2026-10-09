@@ -6,6 +6,7 @@ import 'package:serverpod_cloud_storage/serverpod_cloud_storage.dart';
 
 import 'src/cache_busting.dart';
 import 'src/generated/serverpod.dart';
+import 'src/seed/seed_events.dart';
 import 'src/web/routes/app_config_route.dart';
 
 /// The starting point of the Serverpod server.
@@ -102,4 +103,15 @@ void run(List<String> args) async {
 
   // Start the server.
   await pod.start();
+
+  // Demo events: always in development, and in other run modes only when
+  // SPOT_SEED=true (e.g. once after the first production deploy). Seeding
+  // is idempotent, so restarts don't duplicate events.
+  if (pod.runMode == ServerpodRunMode.development ||
+      Platform.environment['SPOT_SEED'] == 'true') {
+    await pod.withSession((session) async {
+      final inserted = await seedEvents(session);
+      session.log('Seeded $inserted demo events.');
+    });
+  }
 }
