@@ -60,9 +60,25 @@ class MessageState extends StatelessWidget {
   }
 }
 
-/// Placeholder cards shown while the feed loads.
+/// Placeholder cards shown while a list loads.
 class LoadingCards extends StatelessWidget {
   const LoadingCards({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(Gap.md),
+      itemCount: 4,
+      separatorBuilder: (_, _) => const SizedBox(height: Gap.md),
+      itemBuilder: (_, _) => const SkeletonCard(),
+    );
+  }
+}
+
+/// A grey stand-in for an event card.
+class SkeletonCard extends StatelessWidget {
+  const SkeletonCard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -77,26 +93,20 @@ class LoadingCards extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
     );
-    return ListView.separated(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(Gap.md),
-      itemCount: 4,
-      separatorBuilder: (_, _) => const SizedBox(height: Gap.md),
-      itemBuilder: (_, _) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(Gap.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              bar(90, 22),
-              const SizedBox(height: Gap.md),
-              bar(double.infinity, 22),
-              const SizedBox(height: Gap.sm),
-              bar(180, 16),
-              const SizedBox(height: Gap.xs),
-              bar(220, 16),
-            ],
-          ),
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(Gap.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            bar(90, 22),
+            const SizedBox(height: Gap.md),
+            bar(double.infinity, 22),
+            const SizedBox(height: Gap.sm),
+            bar(180, 16),
+            const SizedBox(height: Gap.xs),
+            bar(220, 16),
+          ],
         ),
       ),
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'client.dart';
 import 'screens/app_shell.dart';
@@ -22,6 +23,14 @@ class SpotApp extends StatelessWidget {
       theme: buildSpotTheme(Brightness.light),
       darkTheme: buildSpotTheme(Brightness.dark),
       themeMode: ThemeMode.system,
+      // Dark status-bar icons on light screens (and vice versa), including
+      // screens without an AppBar.
+      builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
+        value: Theme.of(context).brightness == Brightness.dark
+            ? SystemUiOverlayStyle.light
+            : SystemUiOverlayStyle.dark,
+        child: child!,
+      ),
       home: const SignInScreen(child: AppShell()),
     );
   }

@@ -89,135 +89,211 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    final colors = Theme.of(context).colorScheme;
+    final header = _Header(
+      showMap: _showMap,
+      onToggle: (v) => setState(() => _showMap = v),
+    );
+    final banner = (_location?.isFallback ?? false)
+        ? _BrowsingDelhiBanner(
+            reason: _location!.reason,
+            onRetry: () => _load(resolveLocation: true),
+          )
+        : null;
+    final filters = CategoryFilterBar(
+      selected: _category,
+      onChanged: _selectCategory,
+    );
 
     return Scaffold(
       body: SafeArea(
         bottom: false,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(Gap.md, Gap.md, Gap.md, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        child: _showMap
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text('Nearby', style: text.headlineMedium),
-                      ),
-                      SegmentedButton<bool>(
-                        showSelectedIcon: false,
-                        style: const ButtonStyle(
-                          visualDensity: VisualDensity.compact,
-                        ),
-                        segments: const [
-                          ButtonSegment(
-                            value: false,
-                            icon: Icon(Icons.view_agenda_outlined),
-                            tooltip: 'List',
-                          ),
-                          ButtonSegment(
-                            value: true,
-                            icon: Icon(Icons.map_outlined),
-                            tooltip: 'Map',
-                          ),
-                        ],
-                        selected: {_showMap},
-                        onSelectionChanged: (s) =>
-                            setState(() => _showMap = s.first),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: Gap.xs),
-                  Text(
-                    "Find what's happening around you, in person.",
-                    style: text.bodyMedium?.copyWith(
-                      color: colors.onSurfaceVariant,
-                    ),
-                  ),
+                  header,
+                  ?banner,
+                  const SizedBox(height: Gap.sm + 4),
+                  filters,
+                  const SizedBox(height: Gap.sm),
+                  Expanded(child: _buildMap()),
                 ],
-              ),
-            ),
-            if (_location?.isFallback ?? false)
-              _BrowsingDelhiBanner(
-                reason: _location!.reason,
-                onRetry: () => _load(resolveLocation: true),
-              ),
-            const SizedBox(height: Gap.sm + 4),
-            CategoryFilterBar(selected: _category, onChanged: _selectCategory),
-            const SizedBox(height: Gap.xs),
-            Expanded(
-              child: _showMap && _events != null && _location != null
-                  ? EventsMap(
-                      events: _events!,
-                      centerLat: _location!.lat,
-                      centerLng: _location!.lng,
-                      onOpen: _open,
-                    )
-                  : RefreshIndicator(
-                      onRefresh: () => _load(resolveLocation: true),
-                      child: _buildBody(),
+              )
+            // In the list, the header scrolls away and the filters stay
+            // pinned, so small screens keep room for the events.
+            : RefreshIndicator(
+                onRefresh: () => _load(resolveLocation: true),
+                child: CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    SliverToBoxAdapter(child: header),
+                    if (banner != null) SliverToBoxAdapter(child: banner),
+                    SliverPersistentHeader(
+                      pinned: true,
+                      delegate: _PinnedFilters(filters),
                     ),
-            ),
-          ],
-        ),
+                    ..._buildListSlivers(),
+                  ],
+                ),
+              ),
       ),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildMap() {
+    final events = _events, location = _location;
+    if (events == null || location == null) {
+      return _error != null
+          ? MessageState(
+              icon: Icons.wifi_off_rounded,
+              title: "Couldn't load events",
+              message: _error,
+              actionLabel: 'Try again',
+              onAction: _loading ? null : _load,
+            )
+          : const Center(child: CircularProgressIndicator());
+    }
+    return EventsMap(
+      events: events,
+      centerLat: location.lat,
+      centerLng: location.lng,
+      onOpen: _open,
+    );
+  }
+
+  List<Widget> _buildListSlivers() {
+    const padding = EdgeInsets.fromLTRB(Gap.md, Gap.sm, Gap.md, Gap.xl);
     final events = _events;
-    if (events == null && _error == null) return const LoadingCards();
+
+    if (events == null && _error == null) {
+      return [
+        SliverPadding(
+          padding: padding,
+          sliver: SliverList.separated(
+            itemCount: 3,
+            separatorBuilder: (_, _) => const SizedBox(height: Gap.md),
+            itemBuilder: (_, _) => const SkeletonCard(),
+          ),
+        ),
+      ];
+    }
 
     if (_error != null && (events == null || events.isEmpty)) {
-      return _scrollable(
-        MessageState(
-          icon: Icons.wifi_off_rounded,
-          title: "Couldn't load events",
-          message: _error,
-          actionLabel: 'Try again',
-          onAction: _loading ? null : _load,
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: MessageState(
+            icon: Icons.wifi_off_rounded,
+            title: "Couldn't load events",
+            message: _error,
+            actionLabel: 'Try again',
+            onAction: _loading ? null : _load,
+          ),
         ),
-      );
+      ];
     }
 
     if (events!.isEmpty) {
-      return _scrollable(
-        MessageState(
-          icon: Icons.event_busy_outlined,
-          title: _category == null
-              ? 'Nothing nearby yet'
-              : 'No ${_category!.label.toLowerCase()} events nearby',
-          message: 'Be the first — post an event and invite people around you.',
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: MessageState(
+            icon: Icons.event_busy_outlined,
+            title: _category == null
+                ? 'Nothing nearby yet'
+                : 'No ${_category!.label.toLowerCase()} events nearby',
+            message:
+                'Be the first — post an event and invite people around you.',
+          ),
         ),
-      );
+      ];
     }
 
-    return ListView.separated(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(Gap.md, Gap.sm, Gap.md, Gap.xl),
-      itemCount: events.length,
-      separatorBuilder: (_, _) => const SizedBox(height: Gap.md),
-      itemBuilder: (context, i) => EventCard(
-        view: events[i],
-        onTap: () => _open(events[i]),
+    return [
+      SliverPadding(
+        padding: padding,
+        sliver: SliverList.separated(
+          itemCount: events.length,
+          separatorBuilder: (_, _) => const SizedBox(height: Gap.md),
+          itemBuilder: (context, i) =>
+              EventCard(view: events[i], onTap: () => _open(events[i])),
+        ),
+      ),
+    ];
+  }
+}
+
+class _Header extends StatelessWidget {
+  final bool showMap;
+  final ValueChanged<bool> onToggle;
+  const _Header({required this.showMap, required this.onToggle});
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final colors = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(Gap.md, Gap.md, Gap.md, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(child: Text('Nearby', style: text.headlineMedium)),
+              SegmentedButton<bool>(
+                showSelectedIcon: false,
+                style: const ButtonStyle(visualDensity: VisualDensity.compact),
+                segments: const [
+                  ButtonSegment(
+                    value: false,
+                    icon: Icon(Icons.view_agenda_outlined),
+                    tooltip: 'List',
+                  ),
+                  ButtonSegment(
+                    value: true,
+                    icon: Icon(Icons.map_outlined),
+                    tooltip: 'Map',
+                  ),
+                ],
+                selected: {showMap},
+                onSelectionChanged: (s) => onToggle(s.first),
+              ),
+            ],
+          ),
+          const SizedBox(height: Gap.xs),
+          Text(
+            "Find what's happening around you, in person.",
+            style: text.bodyMedium?.copyWith(color: colors.onSurfaceVariant),
+          ),
+        ],
       ),
     );
   }
+}
 
-  /// Keeps pull-to-refresh working on empty and error states.
-  Widget _scrollable(Widget child) => LayoutBuilder(
-    builder: (context, constraints) => SingleChildScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(minHeight: constraints.maxHeight),
-        child: child,
-      ),
-    ),
-  );
+/// Keeps the category chips stuck to the top while the list scrolls.
+class _PinnedFilters extends SliverPersistentHeaderDelegate {
+  final Widget child;
+  _PinnedFilters(this.child);
+
+  static const _height = 44.0 + Gap.sm * 2;
+
+  @override
+  double get minExtent => _height;
+  @override
+  double get maxExtent => _height;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlaps) {
+    return Container(
+      color: Theme.of(context).colorScheme.surface,
+      padding: const EdgeInsets.symmetric(vertical: Gap.sm),
+      child: child,
+    );
+  }
+
+  @override
+  bool shouldRebuild(_PinnedFilters old) => old.child != child;
 }
 
 class _BrowsingDelhiBanner extends StatelessWidget {
@@ -230,37 +306,39 @@ class _BrowsingDelhiBanner extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
     return Container(
-      margin: const EdgeInsets.fromLTRB(Gap.md, Gap.md, Gap.md, 0),
-      padding: const EdgeInsets.fromLTRB(Gap.md, Gap.sm, Gap.xs, Gap.sm),
+      margin: const EdgeInsets.fromLTRB(Gap.md, Gap.sm + 4, Gap.md, 0),
+      padding: const EdgeInsets.fromLTRB(Gap.sm + 4, Gap.xs, Gap.xs, Gap.xs),
       decoration: BoxDecoration(
         color: colors.primary.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
-          Icon(Icons.location_city_rounded, color: colors.primary, size: 20),
-          const SizedBox(width: Gap.sm + 4),
+          Icon(Icons.location_city_rounded, color: colors.primary, size: 18),
+          const SizedBox(width: Gap.sm),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Browsing Delhi',
-                  style: text.labelLarge?.copyWith(fontWeight: FontWeight.w700),
-                ),
-                Text(
-                  [
-                    ?reason,
-                    'showing events around Connaught Place',
-                  ].join(' — '),
-                  style: text.bodySmall?.copyWith(
-                    color: colors.onSurfaceVariant,
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  const TextSpan(
+                    text: 'Browsing Delhi',
+                    style: TextStyle(fontWeight: FontWeight.w700),
                   ),
-                ),
-              ],
+                  TextSpan(
+                    text: ' · ${reason ?? 'Showing'} — near Connaught Place',
+                  ),
+                ],
+              ),
+              style: text.bodySmall?.copyWith(color: colors.onSurface),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-          TextButton(onPressed: onRetry, child: const Text('Retry')),
+          IconButton(
+            tooltip: 'Use my location',
+            onPressed: onRetry,
+            icon: Icon(Icons.my_location, size: 20, color: colors.primary),
+          ),
         ],
       ),
     );

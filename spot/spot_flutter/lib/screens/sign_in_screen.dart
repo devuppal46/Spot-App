@@ -47,7 +47,7 @@ class _SignInScreenState extends State<SignInScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(Gap.lg),
+            padding: const EdgeInsets.all(Gap.md),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
               child: Column(
@@ -75,11 +75,18 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                   ),
                   const SizedBox(height: Gap.xl),
-                  SignInWidget(
-                    client: client,
-                    onAuthenticated: () => _showSnackBar('Welcome to Spot!'),
-                    onError: (error) =>
-                        _showSnackBar('Sign-in failed: $error', isError: true),
+                  // The package's form has fixed-width rows that overflow on
+                  // small phones with large text, so cap its text scale.
+                  MediaQuery.withClampedTextScaling(
+                    maxScaleFactor: 1.15,
+                    child: SignInWidget(
+                      client: client,
+                      onAuthenticated: () => _showSnackBar('Welcome to Spot!'),
+                      onError: (error) => _showSnackBar(
+                        'Sign-in failed: $error',
+                        isError: true,
+                      ),
+                    ),
                   ),
                 ],
               ),

@@ -31,6 +31,10 @@ class EventCard extends StatelessWidget {
               Row(
                 children: [
                   CategoryTag(e.category),
+                  if (view.joinedByMe && !isCancelled) ...[
+                    const SizedBox(width: Gap.xs + 2),
+                    _Pill(label: 'Going', color: colors.primary, filled: true),
+                  ],
                   const Spacer(),
                   if (view.distanceKm != null)
                     _Meta(
@@ -64,14 +68,6 @@ class EventCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: Gap.sm),
-                  if (view.joinedByMe && !isCancelled) ...[
-                    _Pill(
-                      label: "You're going",
-                      color: colors.primary,
-                      filled: true,
-                    ),
-                    const SizedBox(width: Gap.xs),
-                  ],
                   _Pill(
                     label: spotsLeftLabel(view),
                     color: isCancelled || isFull
