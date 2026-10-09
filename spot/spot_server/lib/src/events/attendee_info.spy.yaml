@@ -1,0 +1,6 @@
+### An attendee as shown to the host.
+class: AttendeeInfo
+fields:
+  userId: UuidValue
+  name: String
+  joinedAt: DateTime

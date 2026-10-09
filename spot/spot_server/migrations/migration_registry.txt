@@ -5,3 +5,5 @@
 ### the conflict by removing and recreating the conflicting migration.
 
 20261009181029257
+20261009182714233-events
+20261009183923508-attendance

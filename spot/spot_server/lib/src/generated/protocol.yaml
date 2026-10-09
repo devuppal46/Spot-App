@@ -9,5 +9,12 @@ emailIdp:
   - hasAccount:
 jwtRefresh:
   - refreshAccessToken:
-greeting:
-  - hello:
+event:
+  - createEvent:
+  - getNearbyEvents:
+  - getEvent:
+  - joinEvent:
+  - leaveEvent:
+  - cancelEvent:
+  - getMyEvents:
+  - getAttendees:

@@ -1,0 +1,28 @@
+### An in-person event hosted by a user somewhere in Delhi.
+class: Event
+table: event
+fields:
+  title: String
+  description: String
+  category: EventCategory
+  ### When the event starts (UTC).
+  startsAt: DateTime
+  lat: double
+  lng: double
+  ### Human readable place, e.g. "Hauz Khas Social, Hauz Khas Village".
+  locationName: String
+  ### Maximum number of attendees, not counting the host.
+  capacity: int
+  ### The auth user id of the host.
+  hostId: UuidValue
+  ### Display name of the host, captured when the event is created.
+  hostName: String
+  status: EventStatus, default=open
+  createdAt: DateTime, default=now
+indexes:
+  event_starts_at_idx:
+    fields: startsAt
+  event_host_idx:
+    fields: hostId
+  event_lat_lng_idx:
+    fields: lat, lng

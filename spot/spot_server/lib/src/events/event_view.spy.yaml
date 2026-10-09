@@ -1,0 +1,10 @@
+### An event as seen by the signed-in user, with computed fields.
+class: EventView
+fields:
+  event: Event
+  ### Distance from the point the user searched from, if one was given.
+  distanceKm: double?
+  attendeeCount: int, default=0
+  spotsLeft: int, default=0
+  joinedByMe: bool, default=false
+  hostedByMe: bool, default=false

@@ -17,7 +17,12 @@ import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
     as _iaic;
 import 'package:serverpod_client/serverpod_client.dart' as _isc;
-import 'package:spot_client/src/protocol/greetings/greeting.dart' as _i0h8giud;
+import 'package:spot_client/src/protocol/events/attendee_info.dart'
+    as _iwsfrmro;
+import 'package:spot_client/src/protocol/events/event_category.dart'
+    as _iqjzb1h3;
+import 'package:spot_client/src/protocol/events/event_view.dart' as _i3bbmftp;
+import 'package:spot_client/src/protocol/events/my_events.dart' as _ilbv5wti;
 import 'protocol.dart' as _il2as5qe;
 
 /// By extending [EmailIdpBaseEndpoint], the email identity provider endpoints
@@ -245,21 +250,112 @@ class EndpointJwtRefresh extends _iacc.EndpointRefreshJwtTokens {
       );
 }
 
-/// This is an example endpoint that returns a greeting message through
-/// its [hello] method.
+/// Creating, finding, joining and managing events.
+///
+/// All methods require a signed-in user. Join and capacity rules are enforced
+/// here, never in the app.
 /// {@category Endpoint}
-class EndpointGreeting extends _isc.EndpointRef {
-  EndpointGreeting(_isc.EndpointCaller caller) : super(caller);
+class EndpointEvent extends _isc.EndpointRef {
+  EndpointEvent(_isc.EndpointCaller caller) : super(caller);
 
   @override
-  String get name => 'greeting';
+  String get name => 'event';
 
-  /// Returns a personalized greeting message: "Hello {name}".
-  _ida.Future<_i0h8giud.Greeting> hello(String name) =>
-      caller.callServerEndpoint<_i0h8giud.Greeting>(
-        'greeting',
-        'hello',
-        {'name': name},
+  _ida.Future<_i3bbmftp.EventView> createEvent({
+    required String title,
+    required String description,
+    required _iqjzb1h3.EventCategory category,
+    required DateTime startsAt,
+    required double lat,
+    required double lng,
+    required String locationName,
+    required int capacity,
+  }) => caller.callServerEndpoint<_i3bbmftp.EventView>(
+    'event',
+    'createEvent',
+    {
+      'title': title,
+      'description': description,
+      'category': category,
+      'startsAt': startsAt,
+      'lat': lat,
+      'lng': lng,
+      'locationName': locationName,
+      'capacity': capacity,
+    },
+  );
+
+  /// Upcoming open events within [radiusKm] of ([lat], [lng]), soonest first.
+  _ida.Future<List<_i3bbmftp.EventView>> getNearbyEvents(
+    double lat,
+    double lng,
+    double radiusKm, {
+    _iqjzb1h3.EventCategory? category,
+  }) => caller.callServerEndpoint<List<_i3bbmftp.EventView>>(
+    'event',
+    'getNearbyEvents',
+    {
+      'lat': lat,
+      'lng': lng,
+      'radiusKm': radiusKm,
+      'category': category,
+    },
+  );
+
+  _ida.Future<_i3bbmftp.EventView> getEvent(
+    int id, {
+    double? lat,
+    double? lng,
+  }) => caller.callServerEndpoint<_i3bbmftp.EventView>(
+    'event',
+    'getEvent',
+    {
+      'id': id,
+      'lat': lat,
+      'lng': lng,
+    },
+  );
+
+  /// Takes a spot at the event. Fails if the event is full, cancelled,
+  /// already started, hosted by the caller, or already joined.
+  _ida.Future<_i3bbmftp.EventView> joinEvent(int eventId) =>
+      caller.callServerEndpoint<_i3bbmftp.EventView>(
+        'event',
+        'joinEvent',
+        {'eventId': eventId},
+      );
+
+  /// Gives up the caller's spot. Not allowed once the event has started.
+  _ida.Future<_i3bbmftp.EventView> leaveEvent(int eventId) =>
+      caller.callServerEndpoint<_i3bbmftp.EventView>(
+        'event',
+        'leaveEvent',
+        {'eventId': eventId},
+      );
+
+  /// Cancels an upcoming event. Host only.
+  _ida.Future<_i3bbmftp.EventView> cancelEvent(int eventId) =>
+      caller.callServerEndpoint<_i3bbmftp.EventView>(
+        'event',
+        'cancelEvent',
+        {'eventId': eventId},
+      );
+
+  /// Events the caller hosts and has joined. Upcoming first (soonest first),
+  /// then past events (most recent first).
+  _ida.Future<_ilbv5wti.MyEvents> getMyEvents() =>
+      caller.callServerEndpoint<_ilbv5wti.MyEvents>(
+        'event',
+        'getMyEvents',
+        {},
+      );
+
+  /// Who has joined the event, earliest first. Host only.
+  _ida.Future<List<_iwsfrmro.AttendeeInfo>> getAttendees(int eventId) =>
+      caller.callServerEndpoint<List<_iwsfrmro.AttendeeInfo>>(
+        'event',
+        'getAttendees',
+        {'eventId': eventId},
       );
 }
 
@@ -303,7 +399,7 @@ class Client extends _isc.ServerpodClientShared {
        ) {
     emailIdp = EndpointEmailIdp(this);
     jwtRefresh = EndpointJwtRefresh(this);
-    greeting = EndpointGreeting(this);
+    event = EndpointEvent(this);
     modules = Modules(this);
   }
 
@@ -311,7 +407,7 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointJwtRefresh jwtRefresh;
 
-  late final EndpointGreeting greeting;
+  late final EndpointEvent event;
 
   late final Modules modules;
 
@@ -319,7 +415,7 @@ class Client extends _isc.ServerpodClientShared {
   Map<String, _isc.EndpointRef> get endpointRefLookup => {
     'emailIdp': emailIdp,
     'jwtRefresh': jwtRefresh,
-    'greeting': greeting,
+    'event': event,
   };
 
   @override

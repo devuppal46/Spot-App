@@ -1,0 +1,5 @@
+### The signed-in user's events, for the My Events screen.
+class: MyEvents
+fields:
+  hosting: List<EventView>
+  joined: List<EventView>

@@ -1,0 +1,4 @@
+### A user-facing error, e.g. "This event is full". The message is safe to show.
+exception: SpotException
+fields:
+  message: String

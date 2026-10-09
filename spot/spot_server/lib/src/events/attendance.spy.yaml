@@ -1,0 +1,14 @@
+### A user's spot at an event. One row per (event, user).
+class: Attendance
+table: attendance
+fields:
+  event: Event?, relation(onDelete=Cascade)
+  ### The auth user id of the attendee.
+  userId: UuidValue
+  joinedAt: DateTime, default=now
+indexes:
+  attendance_event_user_idx:
+    fields: eventId, userId
+    unique: true
+  attendance_user_idx:
+    fields: userId

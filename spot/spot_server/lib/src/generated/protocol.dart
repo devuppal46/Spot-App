@@ -17,8 +17,25 @@ import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _iacs;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _iais;
-import 'greetings/greeting.dart' as _izw8z7ou;
-export 'greetings/greeting.dart';
+import 'package:spot_server/src/generated/events/attendee_info.dart'
+    as _irk1t3z0;
+import 'package:spot_server/src/generated/events/event_view.dart' as _ia8mhud6;
+import 'events/attendance.dart' as _iczw3yzu;
+import 'events/attendee_info.dart' as _iqln0nk3;
+import 'events/event.dart' as _iq09ghc5;
+import 'events/event_category.dart' as _in056s28;
+import 'events/event_status.dart' as _i4t7xmt2;
+import 'events/event_view.dart' as _ic787h5w;
+import 'events/my_events.dart' as _ijf0i36m;
+import 'events/spot_exception.dart' as _io62tu0j;
+export 'events/attendance.dart';
+export 'events/attendee_info.dart';
+export 'events/event.dart';
+export 'events/event_category.dart';
+export 'events/event_status.dart';
+export 'events/event_view.dart';
+export 'events/my_events.dart';
+export 'events/spot_exception.dart';
 
 class Protocol extends _is.DatabaseSerializationManager {
   Protocol._();
@@ -28,6 +45,221 @@ class Protocol extends _is.DatabaseSerializationManager {
   static final Protocol _instance = Protocol._().._registerHostProtocols();
 
   static List<_isp.TableDefinition> get targetTableDefinitions => [
+    _isp.TableDefinition(
+      name: 'attendance',
+      dartName: 'Attendance',
+      schema: 'public',
+      module: 'spot',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'eventId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'userId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'joinedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'now',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'attendance_fk_0',
+          columns: ['eventId'],
+          referenceTable: 'event',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'attendance_event_user_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'eventId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'userId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+        _isp.IndexDefinition(
+          indexName: 'attendance_user_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'userId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'event',
+      dartName: 'Event',
+      schema: 'public',
+      module: 'spot',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'title',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'description',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'category',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'protocol:EventCategory',
+        ),
+        _isp.ColumnDefinition(
+          name: 'startsAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'lat',
+          columnType: _isp.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+        ),
+        _isp.ColumnDefinition(
+          name: 'lng',
+          columnType: _isp.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+        ),
+        _isp.ColumnDefinition(
+          name: 'locationName',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'capacity',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'hostId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'hostName',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'status',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'protocol:EventStatus',
+          columnDefault: '\'open\'',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'now',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'event_starts_at_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'startsAt',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+        _isp.IndexDefinition(
+          indexName: 'event_host_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'hostId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+        _isp.IndexDefinition(
+          indexName: 'event_lat_lng_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'lat',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'lng',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
     ..._iais.Protocol.targetTableDefinitions,
     ..._iacs.Protocol.targetTableDefinitions,
     ..._isp.Protocol.targetTableDefinitions,
@@ -60,11 +292,73 @@ class Protocol extends _is.DatabaseSerializationManager {
       }
     }
 
-    if (t == _izw8z7ou.Greeting) {
-      return _izw8z7ou.Greeting.fromJson(data) as T;
+    if (t == _iczw3yzu.Attendance) {
+      return _iczw3yzu.Attendance.fromJson(data) as T;
     }
-    if (t == _is.getType<_izw8z7ou.Greeting?>()) {
-      return (data != null ? _izw8z7ou.Greeting.fromJson(data) : null) as T;
+    if (t == _iqln0nk3.AttendeeInfo) {
+      return _iqln0nk3.AttendeeInfo.fromJson(data) as T;
+    }
+    if (t == _iq09ghc5.Event) {
+      return _iq09ghc5.Event.fromJson(data) as T;
+    }
+    if (t == _in056s28.EventCategory) {
+      return _in056s28.EventCategory.fromJson(data) as T;
+    }
+    if (t == _i4t7xmt2.EventStatus) {
+      return _i4t7xmt2.EventStatus.fromJson(data) as T;
+    }
+    if (t == _ic787h5w.EventView) {
+      return _ic787h5w.EventView.fromJson(data) as T;
+    }
+    if (t == _ijf0i36m.MyEvents) {
+      return _ijf0i36m.MyEvents.fromJson(data) as T;
+    }
+    if (t == _io62tu0j.SpotException) {
+      return _io62tu0j.SpotException.fromJson(data) as T;
+    }
+    if (t == _is.getType<_iczw3yzu.Attendance?>()) {
+      return (data != null ? _iczw3yzu.Attendance.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_iqln0nk3.AttendeeInfo?>()) {
+      return (data != null ? _iqln0nk3.AttendeeInfo.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_iq09ghc5.Event?>()) {
+      return (data != null ? _iq09ghc5.Event.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_in056s28.EventCategory?>()) {
+      return (data != null ? _in056s28.EventCategory.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_i4t7xmt2.EventStatus?>()) {
+      return (data != null ? _i4t7xmt2.EventStatus.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_ic787h5w.EventView?>()) {
+      return (data != null ? _ic787h5w.EventView.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_ijf0i36m.MyEvents?>()) {
+      return (data != null ? _ijf0i36m.MyEvents.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_io62tu0j.SpotException?>()) {
+      return (data != null ? _io62tu0j.SpotException.fromJson(data) : null)
+          as T;
+    }
+    if (t == List<_ic787h5w.EventView>) {
+      return (data as List)
+              .map((e) => deserialize<_ic787h5w.EventView>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_ia8mhud6.EventView>) {
+      return (data as List)
+              .map((e) => deserialize<_ia8mhud6.EventView>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_irk1t3z0.AttendeeInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_irk1t3z0.AttendeeInfo>(e))
+              .toList()
+          as T;
     }
     try {
       return _iais.Protocol().deserialize<T>(data, t);
@@ -80,7 +374,14 @@ class Protocol extends _is.DatabaseSerializationManager {
 
   static String? getClassNameForType(Type type) {
     return switch (type) {
-      _izw8z7ou.Greeting => 'Greeting',
+      _iczw3yzu.Attendance => 'Attendance',
+      _iqln0nk3.AttendeeInfo => 'AttendeeInfo',
+      _iq09ghc5.Event => 'Event',
+      _in056s28.EventCategory => 'EventCategory',
+      _i4t7xmt2.EventStatus => 'EventStatus',
+      _ic787h5w.EventView => 'EventView',
+      _ijf0i36m.MyEvents => 'MyEvents',
+      _io62tu0j.SpotException => 'SpotException',
       _ => null,
     };
   }
@@ -95,8 +396,22 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
 
     switch (data) {
-      case _izw8z7ou.Greeting():
-        return 'Greeting';
+      case _iczw3yzu.Attendance():
+        return 'Attendance';
+      case _iqln0nk3.AttendeeInfo():
+        return 'AttendeeInfo';
+      case _iq09ghc5.Event():
+        return 'Event';
+      case _in056s28.EventCategory():
+        return 'EventCategory';
+      case _i4t7xmt2.EventStatus():
+        return 'EventStatus';
+      case _ic787h5w.EventView():
+        return 'EventView';
+      case _ijf0i36m.MyEvents():
+        return 'MyEvents';
+      case _io62tu0j.SpotException():
+        return 'SpotException';
     }
     className = _iais.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -123,8 +438,29 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName is! String) {
       return super.deserializeByClassName(data);
     }
-    if (dataClassName == 'Greeting') {
-      return deserialize<_izw8z7ou.Greeting>(data['data']);
+    if (dataClassName == 'Attendance') {
+      return deserialize<_iczw3yzu.Attendance>(data['data']);
+    }
+    if (dataClassName == 'AttendeeInfo') {
+      return deserialize<_iqln0nk3.AttendeeInfo>(data['data']);
+    }
+    if (dataClassName == 'Event') {
+      return deserialize<_iq09ghc5.Event>(data['data']);
+    }
+    if (dataClassName == 'EventCategory') {
+      return deserialize<_in056s28.EventCategory>(data['data']);
+    }
+    if (dataClassName == 'EventStatus') {
+      return deserialize<_i4t7xmt2.EventStatus>(data['data']);
+    }
+    if (dataClassName == 'EventView') {
+      return deserialize<_ic787h5w.EventView>(data['data']);
+    }
+    if (dataClassName == 'MyEvents') {
+      return deserialize<_ijf0i36m.MyEvents>(data['data']);
+    }
+    if (dataClassName == 'SpotException') {
+      return deserialize<_io62tu0j.SpotException>(data['data']);
     }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);
@@ -165,6 +501,12 @@ class Protocol extends _is.DatabaseSerializationManager {
       if (table != null) {
         return table;
       }
+    }
+    switch (t) {
+      case _iczw3yzu.Attendance:
+        return _iczw3yzu.Attendance.t;
+      case _iq09ghc5.Event:
+        return _iq09ghc5.Event.t;
     }
     return null;
   }

@@ -15,9 +15,11 @@ import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _iacs;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _iais;
+import 'package:spot_server/src/generated/events/event_category.dart'
+    as _ilma914n;
 import '../auth/email_idp_endpoint.dart' as _iuc1hd5t;
 import '../auth/jwt_refresh_endpoint.dart' as _inwq3ztq;
-import '../greetings/greeting_endpoint.dart' as _il624ik7;
+import '../events/event_endpoint.dart' as _i7r7roa3;
 
 class Endpoints extends _is.EndpointDispatch {
   @override
@@ -35,10 +37,10 @@ class Endpoints extends _is.EndpointDispatch {
           'jwtRefresh',
           null,
         ),
-      'greeting': _il624ik7.GreetingEndpoint()
+      'event': _i7r7roa3.EventEndpoint()
         ..initialize(
           server,
-          'greeting',
+          'event',
           null,
         ),
     };
@@ -248,16 +250,51 @@ class Endpoints extends _is.EndpointDispatch {
         ),
       },
     );
-    connectors['greeting'] = _is.EndpointConnector(
-      name: 'greeting',
-      endpoint: endpoints['greeting']!,
+    connectors['event'] = _is.EndpointConnector(
+      name: 'event',
+      endpoint: endpoints['event']!,
       methodConnectors: {
-        'hello': _is.MethodConnector(
-          name: 'hello',
+        'createEvent': _is.MethodConnector(
+          name: 'createEvent',
           params: {
-            'name': _is.ParameterDescription(
-              name: 'name',
+            'title': _is.ParameterDescription(
+              name: 'title',
               type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'description': _is.ParameterDescription(
+              name: 'description',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'category': _is.ParameterDescription(
+              name: 'category',
+              type: _is.getType<_ilma914n.EventCategory>(),
+              nullable: false,
+            ),
+            'startsAt': _is.ParameterDescription(
+              name: 'startsAt',
+              type: _is.getType<DateTime>(),
+              nullable: false,
+            ),
+            'lat': _is.ParameterDescription(
+              name: 'lat',
+              type: _is.getType<double>(),
+              nullable: false,
+            ),
+            'lng': _is.ParameterDescription(
+              name: 'lng',
+              type: _is.getType<double>(),
+              nullable: false,
+            ),
+            'locationName': _is.ParameterDescription(
+              name: 'locationName',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'capacity': _is.ParameterDescription(
+              name: 'capacity',
+              type: _is.getType<int>(),
               nullable: false,
             ),
           },
@@ -266,9 +303,170 @@ class Endpoints extends _is.EndpointDispatch {
                 _is.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['greeting'] as _il624ik7.GreetingEndpoint).hello(
+                  (endpoints['event'] as _i7r7roa3.EventEndpoint).createEvent(
                     session,
-                    params['name'],
+                    title: params['title'],
+                    description: params['description'],
+                    category: params['category'],
+                    startsAt: params['startsAt'],
+                    lat: params['lat'],
+                    lng: params['lng'],
+                    locationName: params['locationName'],
+                    capacity: params['capacity'],
+                  ),
+        ),
+        'getNearbyEvents': _is.MethodConnector(
+          name: 'getNearbyEvents',
+          params: {
+            'lat': _is.ParameterDescription(
+              name: 'lat',
+              type: _is.getType<double>(),
+              nullable: false,
+            ),
+            'lng': _is.ParameterDescription(
+              name: 'lng',
+              type: _is.getType<double>(),
+              nullable: false,
+            ),
+            'radiusKm': _is.ParameterDescription(
+              name: 'radiusKm',
+              type: _is.getType<double>(),
+              nullable: false,
+            ),
+            'category': _is.ParameterDescription(
+              name: 'category',
+              type: _is.getType<_ilma914n.EventCategory?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['event'] as _i7r7roa3.EventEndpoint)
+                  .getNearbyEvents(
+                    session,
+                    params['lat'],
+                    params['lng'],
+                    params['radiusKm'],
+                    category: params['category'],
+                  ),
+        ),
+        'getEvent': _is.MethodConnector(
+          name: 'getEvent',
+          params: {
+            'id': _is.ParameterDescription(
+              name: 'id',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'lat': _is.ParameterDescription(
+              name: 'lat',
+              type: _is.getType<double?>(),
+              nullable: true,
+            ),
+            'lng': _is.ParameterDescription(
+              name: 'lng',
+              type: _is.getType<double?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['event'] as _i7r7roa3.EventEndpoint).getEvent(
+                    session,
+                    params['id'],
+                    lat: params['lat'],
+                    lng: params['lng'],
+                  ),
+        ),
+        'joinEvent': _is.MethodConnector(
+          name: 'joinEvent',
+          params: {
+            'eventId': _is.ParameterDescription(
+              name: 'eventId',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['event'] as _i7r7roa3.EventEndpoint).joinEvent(
+                    session,
+                    params['eventId'],
+                  ),
+        ),
+        'leaveEvent': _is.MethodConnector(
+          name: 'leaveEvent',
+          params: {
+            'eventId': _is.ParameterDescription(
+              name: 'eventId',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['event'] as _i7r7roa3.EventEndpoint).leaveEvent(
+                    session,
+                    params['eventId'],
+                  ),
+        ),
+        'cancelEvent': _is.MethodConnector(
+          name: 'cancelEvent',
+          params: {
+            'eventId': _is.ParameterDescription(
+              name: 'eventId',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['event'] as _i7r7roa3.EventEndpoint).cancelEvent(
+                    session,
+                    params['eventId'],
+                  ),
+        ),
+        'getMyEvents': _is.MethodConnector(
+          name: 'getMyEvents',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['event'] as _i7r7roa3.EventEndpoint)
+                  .getMyEvents(session),
+        ),
+        'getAttendees': _is.MethodConnector(
+          name: 'getAttendees',
+          params: {
+            'eventId': _is.ParameterDescription(
+              name: 'eventId',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['event'] as _i7r7roa3.EventEndpoint).getAttendees(
+                    session,
+                    params['eventId'],
                   ),
         ),
       },

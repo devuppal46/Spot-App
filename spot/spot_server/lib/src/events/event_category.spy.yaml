@@ -1,0 +1,9 @@
+### The kind of event. Shown as a chip and used for filtering.
+enum: EventCategory
+serialized: byName
+values:
+  - debate
+  - bookReading
+  - games
+  - festive
+  - other
