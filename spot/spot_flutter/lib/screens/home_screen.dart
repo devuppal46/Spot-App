@@ -8,6 +8,7 @@ import '../util/location.dart';
 import '../widgets/category.dart';
 import '../widgets/event_card.dart';
 import '../widgets/states.dart';
+import 'event_detail_screen.dart';
 
 /// Radius of the nearby feed. Large enough to cover most of Delhi from CP.
 const feedRadiusKm = 20.0;
@@ -61,6 +62,11 @@ class HomeScreenState extends State<HomeScreen> {
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  Future<void> _open(EventView view) async {
+    final changed = await openEvent(context, view.event.id!, initial: view);
+    if (changed) await refresh();
   }
 
   void _selectCategory(EventCategory? category) {
@@ -152,7 +158,10 @@ class HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.fromLTRB(Gap.md, Gap.sm, Gap.md, Gap.xl),
       itemCount: events.length,
       separatorBuilder: (_, _) => const SizedBox(height: Gap.md),
-      itemBuilder: (context, i) => EventCard(view: events[i]),
+      itemBuilder: (context, i) => EventCard(
+        view: events[i],
+        onTap: () => _open(events[i]),
+      ),
     );
   }
 
