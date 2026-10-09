@@ -8,6 +8,7 @@ import '../util/events_changed.dart';
 import '../util/format.dart';
 import '../widgets/category.dart';
 import '../widgets/states.dart';
+import 'manage_event_screen.dart';
 
 /// Opens the detail screen for [eventId]. Completes with true when the user
 /// changed something (joined, left, cancelled), so lists can refresh.
@@ -89,6 +90,14 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     () => client.event.joinEvent(widget.eventId),
     "You're in! See you there.",
   );
+
+  Future<void> _manage(EventView view) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => ManageEventScreen(view: view)),
+    );
+    // The host may have cancelled it.
+    await _load();
+  }
 
   void _leave() => _run(
     () => client.event.leaveEvent(widget.eventId),
@@ -181,9 +190,12 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
 
     final Widget button;
     if (view.hostedByMe) {
-      button = FilledButton.tonal(
-        onPressed: null,
-        child: Text(isCancelled ? 'Cancelled' : "You're hosting"),
+      button = FilledButton.tonalIcon(
+        onPressed: () => _manage(view),
+        icon: const Icon(Icons.tune),
+        label: Text(
+          isCancelled ? 'Cancelled — view attendees' : 'Manage event',
+        ),
       );
     } else if (isCancelled) {
       button = const FilledButton(onPressed: null, child: Text('Cancelled'));
