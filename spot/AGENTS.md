@@ -1,4 +1,16 @@
-# Flutter & Serverpod project
+# Spot — Flutter & Serverpod project
+
+Spot is an event discovery app for Delhi: people find nearby debates, book readings, games and festive meet-ups, join them, and host their own. Android app (`spot_flutter`) + Serverpod 4 server (`spot_server`) + Google Maps. Project rules are in `CLAUDE.md`.
+
+Where things live:
+
+- `spot_server/lib/src/events/` — models (`Event`, `Attendance`, `EventView`, `MyEvents`, `AttendeeInfo`, `SpotException`) and `EventEndpoint` (create, nearby, get, join/leave, cancel, my events, attendees). Join/capacity rules are enforced here, inside a transaction with a row lock.
+- `spot_server/lib/src/seed/seed_events.dart` — idempotent demo events; run on startup in development, or anywhere with `SPOT_SEED=true`.
+- `spot_flutter/lib/screens/` — sign-in, app shell (Home, Post, My Events, Profile), event detail, manage event, location picker.
+- `spot_flutter/lib/util/location.dart` — device location with the Connaught Place fallback.
+- Google Maps key: `MAPS_API_KEY` in `spot_flutter/android/local.properties` (gitignored), injected into the manifest by `android/app/build.gradle.kts`.
+- In development the Android emulator reaches the server at `http://10.0.2.2:8080/` (set via `dart-define` in the server `pubspec.yaml`). Insights runs on 8083 locally.
+
 
 This project is a Flutter app (frontend) backed by a Serverpod server (backend). Always build the app's backend with Serverpod.
 Build for multiple users, use Serverpod's built-in authentication, which is already set up in `lib/server.dart`.
@@ -46,5 +58,3 @@ If the user asks you to test the app:
 3. Use `flutter_driver` (`dart` MCP) to navigate through the app
 
 The app is launched from `spot_flutter/lib/driver.dart`, which starts the Flutter driver extension with text entry emulation turned off so the app stays usable by hand. To let the driver type, set `enableTextEntryEmulation: true` there and `hot_restart` the app.
-
-IMPORTANT: After building the first version of the app, update this AGENTS.md file with information about the app we're building. KEEP the info about the MCP server and the checklist. Remove this paragraph.
