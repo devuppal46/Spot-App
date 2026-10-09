@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'client.dart';
-import 'screens/home_screen.dart';
+import 'screens/app_shell.dart';
 import 'screens/sign_in_screen.dart';
 import 'theme.dart';
 
@@ -22,7 +22,7 @@ class SpotApp extends StatelessWidget {
       theme: buildSpotTheme(Brightness.light),
       darkTheme: buildSpotTheme(Brightness.dark),
       themeMode: ThemeMode.system,
-      home: const SignInScreen(child: HomeScreen()),
+      home: const SignInScreen(child: AppShell()),
     );
   }
 }
