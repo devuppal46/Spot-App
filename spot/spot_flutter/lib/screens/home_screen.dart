@@ -3,6 +3,7 @@ import 'package:spot_client/spot_client.dart';
 
 import '../client.dart';
 import '../theme.dart';
+import '../util/events_changed.dart';
 import '../util/format.dart';
 import '../util/location.dart';
 import '../widgets/category.dart';
@@ -30,7 +31,14 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    eventsChanged.addListener(refresh);
     _load(resolveLocation: true);
+  }
+
+  @override
+  void dispose() {
+    eventsChanged.removeListener(refresh);
+    super.dispose();
   }
 
   /// Reloads the feed. Called after joining, posting, etc.
@@ -64,10 +72,9 @@ class HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _open(EventView view) async {
-    final changed = await openEvent(context, view.event.id!, initial: view);
-    if (changed) await refresh();
-  }
+  // Changes made on the detail screen arrive through [eventsChanged].
+  Future<void> _open(EventView view) =>
+      openEvent(context, view.event.id!, initial: view);
 
   void _selectCategory(EventCategory? category) {
     if (category == _category) return;

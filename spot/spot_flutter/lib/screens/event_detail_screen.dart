@@ -4,6 +4,7 @@ import 'package:spot_client/spot_client.dart';
 
 import '../client.dart';
 import '../theme.dart';
+import '../util/events_changed.dart';
 import '../util/format.dart';
 import '../widgets/category.dart';
 import '../widgets/states.dart';
@@ -72,6 +73,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
         _view = view.copyWith(distanceKm: _view?.distanceKm);
         _changed = true;
       });
+      notifyEventsChanged();
       showInfoSnackBar(context, done);
     } catch (e) {
       if (!mounted) return;
